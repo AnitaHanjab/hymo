@@ -1,0 +1,12 @@
+<?php
+include 'conn.php';
+
+$result = $conn->query("SELECT * FROM projects");
+
+$rows = [];
+while ($row = $result->fetch_assoc()) {
+  $rows[] = $row;
+}
+
+echo json_encode($rows);
+?>

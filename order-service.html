@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Service | Hymetocean</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('img/bg12.jpg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(8px);
+      z-index: 0;
+    }
+    .order-form {
+      background: rgba(255, 255, 255, 0.95);
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 1;
+    }
+    .order-form h2 {
+      text-align: center;
+      color: #004080;
+      margin-bottom: 20px;
+    }
+    .order-form label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .order-form input,
+    .order-form select,
+    .order-form textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #map {
+      height: 200px;
+      width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .order-form button {
+      margin-top: 20px;
+      width: 100%;
+      background: #4abae7;
+      color: #fff;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .order-form button:hover {
+      background: #003366;
+    }
+    .map-controls {
+      margin-top: 10px;
+      text-align: right;
+    }
+    .map-controls button {
+      padding: 5px 10px;
+      font-size: 0.9rem;
+      background: #666;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .map-controls button:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+  <form class="order-form" action="#" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to submit this order?');">
+    <h2>Order a Service</h2>
+
+    <label for="service">Select Service</label>
+    <select name="service" id="service" required>
+      <option value="">-- Choose Service --</option>
+      <option value="Water Quality Study">Water Quality Study</option>
+      <option value="Air Monitoring">Air Monitoring</option>
+      <option value="Coastal Risk Mapping">Coastal Risk Mapping</option>
+      <option value="Energy Site Analysis">Renewable Energy Site Analysis</option>
+      <option value="Remote Sensing & GIS">Remote Sensing & GIS</option>
+    </select>
+
+    <label for="address">Project Address</label>
+    <input type="text" name="address" id="address" placeholder="Enter full address..." onblur="locateAddress()" required>
+    <div class="map-controls">
+      <button type="button" onclick="resetMap()">Reset Map</button>
+    </div>
+    <div id="map"></div>
+
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+
+    <label for="target_date">Target Completion Date</label>
+    <input type="date" name="target_date" id="target_date">
+
+    <label for="notes">Additional Notes / Requirements</label>
+    <textarea name="notes" id="notes" rows="4" placeholder="Enter any specific requests or info..."></textarea>
+
+    <label for="attachment">Upload Supporting File (optional)</label>
+    <input type="file" name="attachment" id="attachment" accept=".jpg,.png,.pdf,.docx">
+
+    <button type="submit">Submit Order</button>
+  </form>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    let map = L.map('map').setView([14.5995, 120.9842], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker = L.marker([14.5995, 120.9842]).addTo(map)
+      .bindPopup('Waiting for address...').openPopup();
+
+    function locateAddress() {
+      const address = document.getElementById('address').value;
+      if (!address) return;
+
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.length > 0) {
+            const lat = data[0].lat;
+            const lon = data[0].lon;
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lon]).addTo(map).bindPopup(address).openPopup();
+            map.setView([lat, lon], 15);
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lon;
+          }
+        });
+    }
+
+    function resetMap() {
+      map.setView([14.5995, 120.9842], 11);
+      if (marker) map.removeLayer(marker);
+      marker = L.marker([14.5995, 120.9842]).addTo(map)
+        .bindPopup('Waiting for address...').openPopup();
+      document.getElementById('address').value = '';
+      document.getElementById('latitude').value = '';
+      document.getElementById('longitude').value = '';
+    }
+  </script>
+</body>
+</html>
