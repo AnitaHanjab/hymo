@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['Email']) && isset($_P
             if ($Email === 'hymetoceanpeersco@gmail.com') {
                 header("Location: admin.php");
             } else {
-                header("Location: user-dashboard.php");
+                header("Location: front.php");
             }
             exit();
         } else {

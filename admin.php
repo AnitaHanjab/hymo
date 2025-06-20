@@ -77,14 +77,14 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
             <div class="cards">
                 <div class="card-single">
                     <div>
-                        <h1>32</h1>
+                        <h1>2</h1>
                         <span>Clients</span>
                     </div>
                     <div><span class="fa-solid fa-users"></span></div>
                 </div>
                 <div class="card-single">
                     <div>
-                        <h1>12</h1>
+                        <h1>3</h1>
                         <span>Projects</span>
                     </div>
                     <div><span class="fa-regular fa-clipboard"></span></div>
@@ -98,7 +98,7 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
                 </div>
                 <div class="card-single">
                     <div>
-                        <h1>8</h1>
+                        <h1>1</h1>
                         <span>Finished Task</span>
                     </div>
                     <div><span class="fa-solid fa-calendar-check"></span></div>

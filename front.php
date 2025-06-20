@@ -29,6 +29,7 @@ include("connect.php");
                     <li><a href="about.html">About Us</a></li>
                     <li><a href="project.php">Projects</a></li>
                     <li><a href="contact.php">Contact</a></li>
+                    <li><a href="user-dashboard.php">Client Dashboard</a></li>
                     <li><a href="logins.php">Logout</a></li>
                 </ul>
             </div>

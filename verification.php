@@ -1,7 +1,12 @@
 <?php
 session_start();
-$firstname = isset($_SESSION['Firstname']) ? $_SESSION['Firstname'] : 'Unknown';
-$lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
+include 'connect.php';
+
+// Fetch all users with uploaded IDs
+$users = mysqli_query($conn, "SELECT * FROM username WHERE id_attachment IS NOT NULL");
+
+$firstname = $_SESSION['Firstname'] ?? 'Unknown';
+$lastname = $_SESSION['Lastname'] ?? 'User';
 ?>
 
 <!DOCTYPE html>
@@ -9,12 +14,10 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard</title>
+  <title>Admin Dashboard - ID Verification</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="admin.css" />
-
   <style>
-    /* Custom styles for Accept/Decline buttons */
     .btn-verify {
       padding: 6px 14px;
       margin: 2px;
@@ -25,25 +28,10 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
       font-size: 0.9rem;
       transition: all 0.2s ease-in-out;
     }
-
-    .btn-accept {
-      background-color: #28a745;
-      color: #fff;
-    }
-
-    .btn-accept:hover {
-      background-color: #218838;
-    }
-
-    .btn-decline {
-      background-color: #dc3545;
-      color: #fff;
-    }
-
-    .btn-decline:hover {
-      background-color: #c82333;
-    }
-
+    .btn-accept { background-color: #28a745; color: #fff; }
+    .btn-accept:hover { background-color: #218838; }
+    .btn-decline { background-color: #dc3545; color: #fff; }
+    .btn-decline:hover { background-color: #c82333; }
     #id-verification-table a {
       color: var(--main-color);
       font-weight: 500;
@@ -80,7 +68,7 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
       <input type="search" placeholder="Search here" />
     </div>
     <div class="user-wrapper">
-      <img src="img/admin-p2.jpg" width="30px" height="30px" alt="" />
+      <img src="img/admin-p2.jpg" width="30" height="30" alt="Admin">
       <div>
         <h4><?= htmlspecialchars($firstname . ' ' . $lastname) ?></h4>
         <small>Admin</small>
@@ -89,9 +77,6 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
   </header>
 
   <main>
-    <!-- ... Dashboard cards and recent projects ... -->
-
-    <!-- Valid ID Verification Section -->
     <div class="card" style="margin-top: 2rem;">
       <div class="card-header">
         <h3>Valid ID Submissions</h3>
@@ -109,27 +94,33 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Donel Lopez</td>
-                <td>Businessman</td>
-                <td><a href="img/id-donel.jpg" target="_blank">View ID</a></td>
-                <td id="status-donel">Pending</td>
-                <td>
-                  <button onclick="verifyID(this, true)" class="btn-verify btn-accept">Accept</button>
-                  <button onclick="verifyID(this, false)" class="btn-verify btn-decline">Decline</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Phoebe Lagos</td>
-                <td>Student</td>
-                <td><a href="img/id-phoebe.jpg" target="_blank">View ID</a></td>
-                <td id="status-phoebe">Pending</td>
-                <td>
-                  <button onclick="verifyID(this, true)" class="btn-verify btn-accept">Accept</button>
-                  <button onclick="verifyID(this, false)" class="btn-verify btn-decline">Decline</button>
-                </td>
-              </tr>
-              <!-- Add more rows as needed -->
+              <?php while ($user = mysqli_fetch_assoc($users)): ?>
+                <?php
+                  $fullName = htmlspecialchars($user['Firstname'] . ' ' . $user['Lastname']);
+                  $role = htmlspecialchars($user['Role'] ?? 'Client');
+                  $email = htmlspecialchars($user['Email']);
+                  $file = htmlspecialchars($user['id_attachment']);
+                  $status = (int)$user['is_verified'];
+                ?>
+                <tr>
+                  <td><?= $fullName ?></td>
+                  <td><?= $role ?></td>
+                  <td>
+                    <a href="uploads/valid_ids/<?= $file ?>" target="_blank">View ID</a>
+                  </td>
+                  <td id="status-<?= $email ?>" style="color: <?= $status ? 'green' : 'orange' ?>">
+                    <?= $status ? 'Verified' : 'Pending' ?>
+                  </td>
+                  <td>
+                    <?php if (!$status): ?>
+                      <button onclick="verifyID(this, '<?= $email ?>', true)" class="btn-verify btn-accept">Accept</button>
+                      <button onclick="verifyID(this, '<?= $email ?>', false)" class="btn-verify btn-decline">Decline</button>
+                    <?php else: ?>
+                      <span style="color:gray;">No Action Needed</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endwhile; ?>
             </tbody>
           </table>
         </div>
@@ -139,20 +130,27 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
 </div>
 
 <script>
-  function verifyID(button, accepted) {
+  function verifyID(button, email, accepted) {
     const row = button.closest("tr");
     const statusCell = row.querySelector("td[id^='status']");
-    if (accepted) {
-      statusCell.textContent = "Verified";
-      statusCell.style.color = "green";
-    } else {
-      statusCell.textContent = "Declined";
-      statusCell.style.color = "red";
-    }
+    const status = accepted ? "accept" : "decline";
 
-    // Disable buttons after action
-    const buttons = row.querySelectorAll("button");
-    buttons.forEach(btn => btn.disabled = true);
+    fetch("verifyUser.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `email=${encodeURIComponent(email)}&status=${status}`
+    })
+    .then(res => res.text())
+    .then(response => {
+      if (response.trim() === "success") {
+        statusCell.textContent = accepted ? "Verified" : "Declined";
+        statusCell.style.color = accepted ? "green" : "red";
+        const buttons = row.querySelectorAll("button");
+        buttons.forEach(btn => btn.disabled = true);
+      } else {
+        alert("Failed to update status. Try again.");
+      }
+    });
   }
 </script>
 

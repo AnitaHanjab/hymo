@@ -31,26 +31,6 @@ function showAlertAndRedirect($message) {
 // Registration 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['Firstname'])) {
 
-    // Handle ID file upload
-    $idFilename = "";
-    if (isset($_FILES['idFile']) && $_FILES['idFile']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = "uploads/valid_ids/";
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $fileTmp = $_FILES['idFile']['tmp_name'];
-        $originalName = basename($_FILES['idFile']['name']);
-        $idFilename = uniqid() . "_" . preg_replace("/[^a-zA-Z0-9._-]/", "", $originalName); // Safe filename
-        $uploadPath = $uploadDir . $idFilename;
-
-        if (!move_uploaded_file($fileTmp, $uploadPath)) {
-            showAlertAndRedirect("Failed to upload ID file. Please try again.");
-        }
-    } else {
-        showAlertAndRedirect("Please upload a valid ID file.");
-    }
-
     $recaptchaSecret = '6LdLRl4rAAAAANn3IEdslD1i6Iw0fyUfVrQVSM9Y';
     $recaptchaResponse = $_POST['g-recaptcha-response'];
 
@@ -119,43 +99,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['Firstname'])) {
 }
 
 
-// LOGIN 
-if (isset($_POST['Email']) && isset($_POST['Password']) && !isset($_POST['Register'])) {
-    $recaptchaSecret = '6LdLRl4rAAAAANn3IEdslD1i6Iw0fyUfVrQVSM9Y';
-    $recaptchaResponse = $_POST['g-recaptcha-response'];
 
-    $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$recaptchaSecret&response=$recaptchaResponse");
-    $responseKeys = json_decode($response, true);
-
-    if (!$responseKeys["success"]) {
-        header("Location: logins.php?status=recaptchafail");
-        exit();
-    }
-
-    $Email = trim(strtolower($_POST['Email']));
-    $Password = $_POST['Password'];
-
-    $sql = "SELECT * FROM username WHERE LOWER(Email) = '$Email'";
-    $result = mysqli_query($conn, $sql);
-
-    if (!$result) {
-        die("Query failed: " . mysqli_error($conn));
-    }
-
-    if (mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
-
-        if (password_verify($Password, $row['Password'])) {
-            $_SESSION['Email'] = $row['Email'];
-            header("Location: front.php");
-            exit();
-        } else {
-            header("Location: logins.php?status=wrongpassword");
-            exit();
-        }
-    } else {
-        header("Location: logins.php?status=emailnotfound");
-        exit();
-    }
-}
 ?>

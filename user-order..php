@@ -27,6 +27,8 @@ $lastname = isset($_SESSION['Lastname']) ? $_SESSION['Lastname'] : 'User';
         <li><a href="user-completed.php"><span class="fa-solid fa-circle-check"></span><span>Completed Projects</span></a></li>
         <li><a href="user-notifcation.php"><span class="fa-solid fa-bell"></span><span>Notifications</span></a></li>
         <li><a href="user-verify.php"><span class="fa-solid fa-id-card"></span><span>Verify ID</span></a></li>
+        <li><a href="user-order-service.php"><span class="fa-solid fa-plus-circle"></span><span>Order a Service</span></a></li>
+        <li><a href="front.php"><span class="fa-solid fa-home"></span><span>Home</span></a></li>
         <li><a href="logins.php"><span class="fa-solid fa-right-from-bracket"></span><span>Log out</span></a></li>
       </ul>
     </div>
